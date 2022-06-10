@@ -1,0 +1,51 @@
+#!/bin/bash
+
+set -e
+
+jq --version &>/dev/null || { echo "requires jq"; exit 1; }
+fzf --version &>/dev/null || { echo "requires fzf"; exit 1; }
+regctl --help &>/dev/null || { echo "requires regctl"; exit 1; }
+
+main() {
+  registry=$1
+  
+  repo=$(curl -L "$registry"/v2/_catalog 2>/dev/null | jq  '.[] | .[]' -r | fzf)
+  
+  declare -A handler_by_option
+  handler_by_option[list tags]="do_list_tags $registry $repo"
+  handler_by_option[exit]="do_exit"
+  option=$(for key in "${!handler_by_option[@]}"; do echo "$key"; done | sort -r | fzf)
+  eval "${handler_by_option[$option]}"
+}
+
+do_list_tags() {
+  registry=$1
+  [ -n "$tag" ] || { echo "arg 1 registry missing"; exit 1; }
+  repo=$2
+  [ -n "$tag" ] || { echo "arg 2 repo missing"; exit 1; }
+  
+  tag=$(regctl tag ls "$registry"/"$repo" | fzf)
+
+  declare -A handler_by_option
+  handler_by_option[rm tag]="do_rm_tag $registry $repo $tag"
+  handler_by_option[exit]="do_exit"
+  option=$(for key in "${!handler_by_option[@]}"; do echo "$key"; done | sort -r | fzf)
+  eval "${handler_by_option[$option]}"
+}
+
+do_rm_tag() {
+  registry=$1
+  [ -n "$tag" ] || { echo "arg 1 registry missing"; exit 1; }
+  repo=$2
+  [ -n "$tag" ] || { echo "arg 2 repo missing"; exit 1; }
+  tag=$3
+  [ -n "$tag" ] || { echo "arg 3 tag missing"; exit 1; }
+
+  echo "regctl tag rm $registry/$repo:$tag"
+}
+
+do_exit() {
+  echo bye
+}
+
+main "$1"
