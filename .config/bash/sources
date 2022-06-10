@@ -1,0 +1,13 @@
+# shellcheck shell=bash 
+
+if [ -f ~/.config/bash/exports ]; then
+    source ~/.config/bash/exports
+fi
+
+if [ -f ~/.config/bash/nvm ]; then
+    source ~/.config/bash/nvm
+fi
+
+if [ -f ~/.config/bash/path ]; then
+    source ~/.config/bash/path
+fi
