@@ -1,0 +1,4 @@
+# shellcheck shell=bash
+
+export NMON=cmnDt
+export TERM=xterm-256color
