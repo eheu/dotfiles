@@ -1,0 +1,14 @@
+#!/bin/sh
+# modified from  https://gist.github.com/juliapath/ccac8a4f4c5808d6353053cf3a323adc
+
+jq --version &>/dev/null || { echo "requires jq"; exit 1; }
+zenity --version &>/dev/null || { echo "requires zenity"; exit 1; }
+
+
+current_name="$(i3-msg -t get_workspaces | jq -r '.[] | select(.focused==true) | .name')"
+
+label="$(GTK_THEME=yada-gtk zenity --entry --entry-text="$current_name" --title='Change workspace label' --text='Enter new workspace label' 2>/dev/null)" &&
+
+if [ -n "$label" ]; then
+    i3-msg "rename workspace to \"$label\""
+fi
